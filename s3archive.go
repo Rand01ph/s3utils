@@ -1,4 +1,4 @@
-package S3Archive
+package s3utils
 
 import (
 	"archive/zip"
