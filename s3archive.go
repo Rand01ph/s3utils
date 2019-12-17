@@ -11,12 +11,13 @@ import (
 	"time"
 )
 
-func S3PrefixZip(s3Client *minio.Client, bucketName, objectPrefix, outZipName string) {
+func S3PrefixZip(s3Client *minio.Client, bucketName, objectPrefix, outZipName string) error {
 
 	// 创建ZIP包
 	newZipFile, err := os.Create(outZipName)
 	if err != nil {
 		log.Fatalln(err)
+		return err
 	}
 	defer newZipFile.Close()
 	zipWriter := zip.NewWriter(newZipFile)
@@ -24,6 +25,7 @@ func S3PrefixZip(s3Client *minio.Client, bucketName, objectPrefix, outZipName st
 
 	if err != nil {
 		log.Fatalln(err)
+		return err
 	}
 
 	log.Printf("%#v\n", s3Client) // s3Client is now setup
@@ -31,9 +33,11 @@ func S3PrefixZip(s3Client *minio.Client, bucketName, objectPrefix, outZipName st
 	buckets, err := s3Client.ListBuckets()
 	if err != nil {
 		log.Fatalln(err)
+		return err
 	}
 	for _, bucket := range buckets {
 		log.Println(bucket)
+		return err
 	}
 
 	doneCh := make(chan struct{})
@@ -45,20 +49,25 @@ func S3PrefixZip(s3Client *minio.Client, bucketName, objectPrefix, outZipName st
 	for object := range objectCh {
 		if object.Err != nil {
 			log.Fatalln(err)
+			return err
 		}
 		fmt.Println(object)
 		mObj, err := s3Client.GetObject(bucketName, object.Key, minio.GetObjectOptions{})
 		if err != nil {
 			log.Fatalln(err)
+			return err
 		}
 		rel, err := filepath.Rel(objectPrefix, object.Key)
 		if err != nil {
 			log.Fatalln(err)
+			return err
 		}
 		if err = AddFileToZip(zipWriter, rel, mObj); err != nil {
 			log.Fatalln(err)
+			return err
 		}
 	}
+	return nil
 }
 
 func AddFileToZip(zipWriter *zip.Writer, filename string, fileObject io.Reader) error {
