@@ -37,7 +37,6 @@ func S3PrefixZip(s3Client *minio.Client, bucketName, objectPrefix, outZipName st
 	}
 	for _, bucket := range buckets {
 		log.Println(bucket)
-		return err
 	}
 
 	doneCh := make(chan struct{})
